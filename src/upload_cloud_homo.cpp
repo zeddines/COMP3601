@@ -4,10 +4,6 @@
 #include <unordered_map>
 #include <tuple>
 #include <limits>
-//#include <nlohmann/json.hpp>
-
-
-//using JSON = nlohmann::json;
 
 constexpr auto AUTH_CODE_URL = "https://oauth2.googleapis.com/device/code";
 constexpr auto ACCESS_TOKEN_URL = "https://oauth2.googleapis.com/token";
@@ -17,7 +13,7 @@ constexpr auto SCOPE = "scope=https://www.googleapis.com/auth/drive.file";
 constexpr auto GRANT_TYPE = "grant_type=urn:ietf:params:oauth:grant-type:device_code";
 constexpr auto UPLOAD_TYPE = "uploadType=multipart";
 
-
+//parse http response json string
 auto parseJson(const std::string &json) {
     std::unordered_map<std::string, std::string> result;
     std::string key, value;
@@ -50,7 +46,7 @@ auto parseJson(const std::string &json) {
     return result;
 }
 
-
+// blocking function, waiting for user to enter user code to google.com/device before proceeding
 void waitForAuthorization(const std::string &url, const std::string &userCode) {
     std::cout << "Waiting For Authentication ..." << std::endl;
     std::cout << "Please Go to URL Below and Enter the User Code." << std::endl;
@@ -69,13 +65,13 @@ void waitForAuthorization(const std::string &url, const std::string &userCode) {
     } while(keyPressed != 'y' && keyPressed != 'Y'); 
 }
 
-
+// curl cleanup
 void cleanup(CURL *curl, struct curl_slist *headers){
     curl_easy_cleanup(curl);
     curl_slist_free_all(headers);
 }
 
-
+// callback function for http response
 size_t write_callback(char *buf, size_t size, size_t nmemb, void* up) {
   size_t num_bytes = size*nmemb;
   std::string* data = (std::string*) up;
@@ -85,28 +81,28 @@ size_t write_callback(char *buf, size_t size, size_t nmemb, void* up) {
   return num_bytes;
 }
 
-
+// get the authorization code base on client id
 auto getAuthCodes(const std::string &client_id){
     std::cout << "Obtaining Device Code ..." << std::endl;
     struct curl_slist *headers = NULL;
     CURL *curl = curl_easy_init();
     if (curl) {
-        //JSON result;
+        // JSON result;
         std::unordered_map<std::string, std::string> result; 
         CURLcode res;
         const auto postFields = client_id + "&" + SCOPE;
         std::string response;
-        /* Set URL */
+        // set URL 
         curl_easy_setopt(curl, CURLOPT_URL, AUTH_CODE_URL);
         
-        /* Set Post fields and headers */
+        // set Post fields and headers 
         headers = curl_slist_append(headers, AUTH_CONTENT_TYPE);
         curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
         curl_easy_setopt(curl, CURLOPT_POSTFIELDS, postFields.c_str());
         curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
         curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, &write_callback);
         curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void *) &response);
-        /* Get Result */ 
+        // get result
         res = curl_easy_perform(curl);
 
         if(res != CURLE_OK){
@@ -116,8 +112,7 @@ auto getAuthCodes(const std::string &client_id){
         }
         
         std::cout << response << std::endl;
-        
-        //result = JSON::parse(response);
+
         result = parseJson(response); 
         cleanup(curl, headers);
     
@@ -133,21 +128,21 @@ auto getAuthCodes(const std::string &client_id){
     }
 }
 
-
+// get access token using client_id, client secret and device code after user authorization
 auto getAccessToken(const std::string &client_id, const std::string &client_secret, const std::string &device_code){
     struct curl_slist *headers = NULL;
     CURL *curl = curl_easy_init();
     if (curl) {
-//        JSON result;
+        // JSON result
         std::unordered_map<std::string, std::string> result; 
         CURLcode res;
         const std::string postFields = client_id + "&" + client_secret + "&" + device_code + "&" + GRANT_TYPE;
         std::string response;
         std::cout << postFields << std::endl;
-        /* Set URL */
+        // set URL
         curl_easy_setopt(curl, CURLOPT_URL, ACCESS_TOKEN_URL);
         
-        /* Set Post fields and headers */
+        // set Post fields and headers 
         headers = curl_slist_append(headers, AUTH_CONTENT_TYPE);
         curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
         curl_easy_setopt(curl, CURLOPT_POSTFIELDS, postFields.c_str());
@@ -165,11 +160,10 @@ auto getAccessToken(const std::string &client_id, const std::string &client_secr
         }
         
         std::cout << response << std::endl;
-        //result = JSON::parse(response);
         result = parseJson(response);
         cleanup(curl, headers);
 
-        return "Authorization: Bearer " + result["access_token"];//.get<std::string>();
+        return "Authorization: Bearer " + result["access_token"];
     } else {
         cleanup(curl, headers);
         std::cerr << "Fail to create curl handle" << std::endl;
@@ -177,28 +171,28 @@ auto getAccessToken(const std::string &client_id, const std::string &client_secr
     }
 }
 
-
+// upload request, with accesstoken and file as arguemnt
 void uploadFile(const std::string &accessToken, const std::string &filePath){
     struct curl_slist *headers = NULL;
     CURL *curl = curl_easy_init();
     if (curl) {
         CURLcode res;
 
-        /* Set URL and Headers */
+        // set URL and headers
         curl_easy_setopt(curl, CURLOPT_URL, UPLOAD_URL);
         headers = curl_slist_append(headers, accessToken.c_str());
         curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
        
-        /* Set Mime */
+        // set mime
         curl_mime *mime = curl_mime_init(curl);
 
-        /* Set Metadata */
+        // set Metadata
 //        curl_mimepart *metaData = curl_mime_addpart(mime);
 //        curl_mime_type(metaData, "application/json; charset=UTF-8");
 //        curl_mime_data(metaData, "{\"mimeType\": \"audio/wav\", \"name\": \"test.wav\"}", CURL_ZERO_TERMINATED);
 
         
-        /* Set Files */
+        // set files
         curl_mimepart *data = curl_mime_addpart(mime);
         curl_mime_name(data, "file");
         curl_mime_type(data, "audio/mpeg");
@@ -224,18 +218,22 @@ void uploadFile(const std::string &accessToken, const std::string &filePath){
     }
 }
 
-
+// client id, client secret and file path are entered as cmd arguments
 int main(int argc, char *argv[]){
     const auto client_id = "client_id=" + std::string(argv[1]);
     const auto client_secret = "client_secret=" + std::string(argv[2]);
     const auto filePath = std::string(argv[3]);
-
+    // get authorization code
     const auto &[device_code, user_code, verification_url] = getAuthCodes(client_id);
-
+    
+    // waiting for user to enter user code in google.com/device for authorization
     waitForAuthorization(verification_url, user_code);
-    
+
+    // get the access token
     const auto accessToken = getAccessToken(client_id, client_secret, device_code);
-    
+
+    // upload request
     uploadFile(accessToken, filePath);
+    
     return 0;
 }
