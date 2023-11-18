@@ -14,8 +14,8 @@
 ![run record.sh](img/record.png)
 2. Enter the duration and filename
 3. Specify if you want to upload the mp3 file to cloud, the mp3 file will be uploaded to google drive with the following credentials
-user: zeddines0904@gmail.com
-password: 12345bertram
+- user: zeddines0904@gmail.com
+- password: 12345bertram
 4. Start recording
 	4.1 After recording, if upload to cloud is selected 
 		4.1.1 You will need to enter a user code, enter the user code in google.com/device on web browser
