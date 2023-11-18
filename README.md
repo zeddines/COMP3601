@@ -39,9 +39,11 @@
 - The mp3 file should be uploaded (it is named untitled as metadata hasn't been properly set, and sometimes it takes a couple of minutes to upload if you are using UNSW internet)
 
 - waiting for connection
+
 ![waiting for connection](img/wait_connection.png)
 
 - success
 ![success](img/success.png)
+
 
 
