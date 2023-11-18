@@ -20,9 +20,9 @@
 - password: 12345bertram
 4. Start recording
 
-	- 4.1. After recording, if upload to cloud is selected 
+- After recording, if upload to cloud is selected 
 
-	- <sub>4.1.1. You will need to enter a user code, enter the user code in google.com/device on web browser</sub>
+- You will need to enter a user code, enter the user code in google.com/device on web browser
 
 ![get user code](img/enter_code.png)
 
@@ -30,13 +30,13 @@
 
 ![enter user code](img/code_url.png)
 
-	- <sub>4.1.2. Click account zeddines0904@gmail.com</sub>
+- Click account zeddines0904@gmail.com
 
 ![choose account](img/choose_ac.png)
 
-	- <sub>4.1.3. Once succeed, press Y on command line of board to proceed the upload</sub>
+- Once succeed, press Y on command line of board to proceed the upload
 
-	- <sub>4.1.4. The mp3 file should be uploaded (it is named untitled as metadata hasn't been properly set, and sometimes it takes a couple of minutes to upload if you are using UNSW internet)</sub>
+- The mp3 file should be uploaded (it is named untitled as metadata hasn't been properly set, and sometimes it takes a couple of minutes to upload if you are using UNSW internet)
 
 ![waiting for connection](img/wait_connection.png)
 
